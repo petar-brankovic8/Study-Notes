@@ -50,7 +50,8 @@
 
 ### Remote
 
-`git push <remote> <branch>` - Push local branch to the specified remote. Without any arguments it pushes the current branch to its upstream.
+`git push [-u] <remote> <branch>` - Push local branch to the specified remote. Without any arguments it pushes the current branch to its upstream.
+- `-u`: Sets upstream branch for you local branch.
 
 `git fetch [--prune] <remote>` - Fetch updates.
 - `--prune`: Prunes deleted branches from the remote. Does not delete local branch.
