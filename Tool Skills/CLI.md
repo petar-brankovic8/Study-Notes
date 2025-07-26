@@ -46,6 +46,10 @@ You can add your own variables using shell's specific command.
 
 **Command substitution** lets you use command output as a string in your filepath. Syntax: `$(command)`.
 
+**Pattern matching symbols:**
+- `*`: Any string (0+ chars), example `command *.txt`.
+- `?`: Single character, example `command file?.txt`.
+
 ### **Redirection**
 
 **Redirection** changes where input comes from or where output goes to. Output can be redirected to a file or a device. You can redirect them using operators.
@@ -75,3 +79,7 @@ Syntax: `command1 | command2`
 They are good for quick learning, troubleshooting, option discovery, etc.
 
 ## cmd
+
+### **Commands**
+
+**Create empty file:** `type nul > filename.extension`
