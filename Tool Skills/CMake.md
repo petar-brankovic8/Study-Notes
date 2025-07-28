@@ -31,6 +31,20 @@ Tells compiler which libraries to link to the target.
 `target_compile_features(target [PRIVATE|PUBLIC|INTERFACE] <feature1> <feature2> ...)`  
 Specifying which language features does a target need. For example, it uses features from C++17, and it forces that compiler supports those features.
 
+### **Forcing C standard**
+
+`set(CMAKE_C_STANDARD <number>)`  
+`set(CMAKE_CXX_STANDARD <number>)`  
+Use this standard if possible. (Example: number = 17 for C++17).
+
+`set(CMAKE_C_STANDARD_REQUIRED ON)`  
+`set(CMAKE_CXX_STANDARD_REQUIRED ON)`  
+Force to use this standard, fail otherwise.
+
+`set(CMAKE_C_EXTENSIONS OFF)`  
+`set(CMAKE_CXX_EXTENSIONS OFF)`  
+Disables compiler specific extensions.
+
 ### **Variables**
 
 `set(VAR_NAME value)`  

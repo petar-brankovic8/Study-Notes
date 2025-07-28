@@ -58,10 +58,19 @@
 
 `git pull <remote> <branch>` - Fetch updates and automatically merge them into the branch. Without any arguments it pulls into current branch from its upstream.
 
-## Undoing changes
+### Undoing changes
 
 `git revert <commit-hash>` - Create new commit that return state to the old snapshot.
 
 `git reset [--soft] [--hard] <commit-hash>` - Discard all commits until the given one.
 - `--soft`: All changes after that commit stay in the working directory.
 - `--hard`: Delete all changes until that commit permanently.
+
+### .gitignore
+
+`touch .gitignore` - Create empty .gitignore file.
+
+Adding new lines in .gitignore tells it what to ignore:
+- `<folder>/` - Ignore folder with path relative to root.
+- `<file>` - Ignore file with path relative to root.
+- `*.extension` - Ignore all files with this extension. 
