@@ -419,7 +419,7 @@ Class: **Computer Networks 1**
 - **IP address**: They identify devices. Has length of 4 bytes.
     - **Source IP Address**: Part of IP packet header.
     - **Destination IP Address**: Part of IP packet header.
-    - **Dotted Decimal**: Notation for representing IP adrresses - decade numbers separated by dot. Example: 147.91.11.21, 192.168.0.11...
+    - **Dotted Decimal**: Notation for representing IP addresses - decade numbers separated by dot. Example: 147.91.11.21, 192.168.0.11...
     - **Grouping**: IP addresses of devices in a same LAN are grouped in joint network IP address. LAN network on L2 layer is mapped in to IP network on L3 layer. All devices in one LAN have same IP address "prefix" that repsresents that network.
     - **Two parts of IP address**: Address of a network - "left part of the address", "network part". Address of a device in the network - "right part of the address", "host part".
     - **Network address**: Bits with value zero in host part.
@@ -440,3 +440,219 @@ Class: **Computer Networks 1**
         - **Mask information**: When address is given with a mask, it also contains information to which network does the unique IP address of a host belong to.
         - **VLSM**: *Variable Length Subnet Mask*, using masks od different lengths in one network.
         - **Supernetting**: Merging more adjacent subnetworks in one larger subnetwork using a common mask.
+
+## Routing
+
+- **Router (gateway)**: L3 communication device.
+    - **Working principle**:
+        1. **Input interface**: Port on which they receive packages.
+        2. **IP address look-up**: Destination IP address that is being looked up.
+        3. **Output interface**: Output port that leads to destination determined by destination IP address.
+    - **Interface**: Module/Card/Port on router.
+        - **Name**: Each interface has a symbolic name (Serial, FastEthernet, GigabitEthernet, ...) and a numeric label (index).
+        - **IP address**: Each interface has its own IP address.
+        - **MAC address**: For LAN ports.
+- **Next-hop**: "Next step on the packets way to destination address". It is IP address of the adjacent routers inteface on the common link or network. 
+- **Routing**: Forwarding packets on the next-hop address based on destination (*Destination-based routing*).
+    - **Source-based routing**: It is possible to force routing through predefined interfaces (very rare use case).
+- **Routing table**: Contains IP address and their assigned next-hop address (address that lead to them).
+    - **Route**: Row in routing table (network and next-hop).
+    - **End devices routing table**: End devices (like PCs, laptops, servers) also have routing tables.
+- **Default gateway**: 
+    - **Predefined exit**: Predefined exit of the IP (local) network. 
+    - **Routers port**: Port on the router that belongs to the subnetwork represents its predefined exit. 
+    - **IP communication**: Used for communication between different IP networks - through router. 
+    - **Hosts**: All hosts on IP layer must have defined their default gateway in order to communicate outside the local network.
+- **Broadcast domain**: Equivalent to collision domain on L2, just on L3. Routers are borders for broadcast domains, like switches for collision domains.
+- **Static routes**: Manually configured routes on routers for certain networks. "Use next-hop x.x.x.x for network x.x.x.x/X".
+    - **Pros**: Simple, doesen't require extra resources, readable.
+    - **Cons**: Changes in network require manual configuration on large number of devices, unscalabale for larger networks.
+- **Dynamic routes**: Routers exchange infromations about networks on their own, similar to STP. Defined by routing protocols.
+- **Default route**: Predefined route for all networks without their own individual route.
+    - **0.0.0.0**: Default route label. Contains mask "/0", which means it contains all networks.
+    - **Single exit link**: If there is only one link to the rest of the network, routing table can contain only small amount of routes to certain "internal" networks, and default route for all other networks (including the whole Internet).
+    - **No default route**: If routing table doesen't contain route to certain network, and doesen't have default route, packets for that network are being thrown away.
+- **Most specific route rule**: If in routing table there are more networks in which a destination can belong to, this rule chooses the smallest network, the one with longest prefix (mask).
+- **ARP - Address Resolution Protocol**: Automated MAC address discovery based on IP address.
+    - **ARP Request**: Broadcast packet requesting MAC address from the device that owns the destination IP address. If there is no response, ARP signals a mistake.
+    - **ARP Reply**: Owner of the destination IP address sends back it's MAC address using unicast packet. MAC address is recognised from body of ARP packet, not Ethernet header.
+    - **ARP Table**: Table that temporarly holds discovered MAC addresses. Contains pairs of IP and MAC addresses. Every row has aging time.
+- **ICMP - Internet Control Message Protocol**: For sending control messages about work of IP network.
+    - **Encapsulated in IP message**: Techincally is appearing as protocol of transport layer, but does not do transport layer functions.
+    - **Two base groups**: *Error Message* and *Query Message* (request and reply).
+    - **ICMP - Destination Unreachable**: ICMP Error Message.
+        - **Error message**: Informing source device that the packet was thrown away. Contains first 100 bytes of the original packet, so device could recognise which packet was thrown away.
+        - **Types**: 
+            - **Can't Fragment**: When IP packet is larger than MTU value in next L2 segment, and "Don't fragment" flag is set.
+            - **Network Unreachable**: When there is no matching network in routing table.
+            - **Host Unreachable**: When there is no response for ARP Request in the directly connected network.
+            - **Protocol Unreachable**: Packet got to the L3 of the destination device, but L4 protocol is unknown to the device.
+            - **Port Unreachable**: Packet got to the L4 of the destination device, but there is no application ("open port") that is given in the L4 header.
+    - **ICMP - Redirect**: ICMP Error message.
+        - **Error message**: Default gateway informs the sender device that for the destination there is a better specific route (more routers connected to same LAN).
+        - **Steps**:
+            1) Device sends packet for other network to default gateway.
+            2) Default gateway forwards the packet to another router on the same LAN (receives and sends to the same interface - sign of error).
+            3) Default gateway informs the device that there is a better route.
+            4) New specific route is being written in routing table of the device.
+            5) Device sends new packets directly to the other router using newly written route.
+    - **ICMP - Time Exceeded**: ICMP Error message.
+        -  **Error message**: When Time-To-Live reaches zero, packet is being thrown away, of which the router is informing the source device.
+    - **ICMP - Echo Request/Reply (ping)**: ICMP Query message.
+        - **Ping command**: Checks reachability on IP layer.
+        - **Steps**:
+            1) Sends ICMP Echo Request to chosen IP address.
+            2) Gets reply with ICMP Echo Reply message.
+
+## Routing protocols
+
+- **Routing protocols**: Not for routing concrete messages, but for routers to learn how to route messages - to set up routing tables.
+- **Base principles**:
+    - **Routing update**: Inform other routers about networks for which they have information.
+    - **Gather information**: Gather information about other networks from other routers.
+    - **Best route**: If there are more routes to some network, best one is chosen based on certain metrics and that route is written in routing table.
+    - **Topology change**: If topology change happens, best route is again being chosen based on metrics and other routers are informed about new state.
+- **Autonomous System**: Unique computer networks administrative domain.
+    - **NOC**: *Network Operation Center* - center with unique control of whole network.
+    - **Address space**: Careful design and management of unique address space.
+    - **Synced routing**: Configurations of routers and adjustments are synchornized in whole network.
+    - **Requirement**: In order for a network to be an autonomous system it must be connected to at least two autonomous systems (~100.000 systems today).
+    - **Internal routing protocols**: Inside one autonomous system.
+        - **Routing domain**: Part of network with one routing protocol. Autonomous system usually has one routing domain, but can have more.
+    - **External routing protocols**: Between autonomous systems, more precisely between "border routers".
+        - **Internet**: BGP external routing protocol between autonomous systems.
+- **Distance Vector**: Internal routing protocol.
+    - **Communication exchange**: Adjacent routers exchange information about networks, based on which they find out:
+        - **Metric**: Distance to certain network.
+        - **Vector**: Vector that leads to certain vector - next-hop.
+    - **Vision**: Routers know only adjacent routers, not whole topology. Routes are periodically exchanged.
+- **Link State**: Internal routing protocol.
+    - **Communication exchange**: Adjacent routers exchange information about networks, whole topology is found out, with all parameters (link bandwidth, addresses, ...).
+    - **Topology change**: Informations aren't exchanged periodically, only upon topology change.
+- **Classful routing protocols**:
+    - **Masks**: Routes that are being exchanged do not contain masks.Masks are supported but have to be same length in all IP networks (all routers know the mask implicitly based on their interface configuration).
+    - **Autosummarization**: Automatic aggregation of all IP networks when communicating with other routing protocol. It is classful - done one network part of class A, B, or C independently of the mask that is being used.
+- **Classless routing protocols**:
+    - **Masks**: Masks are contained in routes that are being exchanged between routers.
+    - **VLSM**: Mask of variable length.
+    - **Aggregation**: Flexible aggregation of IP networks - transmitting aggregated routes to other routing domain.
+    - **Modern use**: Only they are being used for a long time.
+- **Metric**: For choosing best route when there more different routes to some network. Can be:
+    - **Hop count**: Number of steps (routers) to certain network.
+    - **Bandwidth**: Calculated from link speed.
+    - **Cost**: Arbitrary predefined price.
+    - **Delay**: Delay that link has (for example satellite links have higher delay than ground links, independently from bandwidth).
+    - **Load**
+    - **Reliability**
+- **Load Balancing**: More routes to certain network with same metric.
+    - **Communication stream**: Usually one communication stream (all packets from same communication) goes one link, other stream on other link.
+    - **Routing table**: Routing table can contain two or more next-hop addresses for one network.
+- **Administrative distance**: Used when two different routes to the same network are received from different routing protocols.
+    - **Fixed price**: Every routing protocol has predefined fixed price (RIP - 120, OSPF - 110, ...).
+    - **Choosing**: Router chooses the route from the protocol with smaller administrative distance (price).
+
+## Distance Vector
+
+- **Routing update**: Information exchange with adjacent routers - address of network (with mask) and metric to that network.
+- **Perodic announcement**: Routers periocially send routes from their routing table, even when there are no changes.
+- **Convergency**: Process of setting up stable and consistent state on all routers in network.
+    - **Stable state**: Routing tables aren't being changed on new routing updates.
+    - **Consistent state**: All routes are valid, no irregularities.
+- **Routing loops**: Can occur during convergence and create unconsistent state of routing tables and loops upon routing.
+    - **"Count-to-Infinity" Problem**: One network is shut down, deleted from table A, table B still hasn't deleted that network and sends routing update. Table A gets routing update from B and adds previosly deleted network with +1 hop count. Table A sends routing update, and table B receives new information about network and updates it to +1 hop count. And like that to infinity.
+    - **Set infinity**: Set fixed maximum value for "infinity" for which when hop count gets to, declare both routes invalid and delete from both routers.
+    - **Route Poisoning**: Announcing that the route is unreachable by deleting it from the table and announcing it with "infinity" metrics. Routers that receive route with "infinity" metrics write down this route (route is invalid) and keep it certain time.
+    - **Triggered Update**: When route becomes unreachable, in the same momemnt announcment is made, not waiting for the next periodic routing update. Only one route is announced, not whole routing table. Much faster convergence.
+    - **Split Horizon**: Never announce a route on the interface from which that route arrived from.
+    - **Poison Reverse**: Invalid route is being announced on interfaces from where it came from - Split Horizon rule is being suspended for this case. Router confirms that it doesen't have a better route.
+    - **Holddown timer**: 
+        - **Problem**: Route Poisoning, Triggered update, and Split horizon aren't enough to prevent loops in case of redundant networks.
+        - **Example**: Router 1 sends Route Poisoning and Triggered update for invalid network. Router 3, before receiving them, sends routing update with valid route to the network. Router 2, in case when it is closer to Router 1, receives first Route Poisoning and then shortly after routing update from Router 3 with valid route to the network which overrides the Route Poisoning which brings the network in inconsistent state.
+        - **Solution**: Wait a certain time so that information can propagate to all routers.
+        - **Holddown timer**: When router receives Route Poisoning Triggered update, start Holddown timer (usually 3min). During Holddown time all new routes for that network are being ignored.
+        - **Convergency**: Leads to long convergency time which is way it isn't used nowdays.
+- **RIPv1**: *Routing Information Protocol*
+    - **Administrative distance**: 120.
+    - **Classful**: Doesn't support VLSM, automatic autosummarization.
+    - **Metric**: hop-count, max - 16.
+    - **Applicative layer**: RIP works on applicative layer, messages are being transmitted inside UDP messages on L4.
+    - **Communication in two steps**: Every 30 seconds.
+        - **RIP Request message**: Stating network address for which the routes are being requested - usually 0.0.0.0 for all routes. Sent on broadcast address.
+        - **RIP Response message**: Response on request - usually all routes (whole routing table). Up to 25 routes in one message. Sent on unicast address to the router that sent request.
+- **RIPv2**:
+    - **Classless**: Support for VLSM. Mask is being transmitted in routing updates.
+    - **Mutual authentication**: For security.
+
+## Link-State
+
+- **Link-State Advertisements (LSA)**: Adjacent routers exchange much larger set of information.
+- **Link-State Database (LSDB)**: Base of information is created using which the topology of network is reconstructed (router graph and network with metric). Contains all LSA received from all routers, in the end all routers will have the same database.
+- **Shortest Path First (SPF)**: Shortest distance to every network is being calculated using Dijkstra's algorithm by which the routing table is being created, if more routes have same price then load balancing is done by writting all of them in the table.
+- **"Link"**: Routers interface - describes the network.
+    - **"Link state"**: Information about interface. IP address and mask of network, IP address of interface, router ID, interface type, link cost, adjacent routers on the link, ...
+- **LSA packet**: Contains: State of every directly connected link (interface); Information about neighbours - router, link type, cost (bandwidth).
+- **Flooding**: Intensive exchange of LSA packets by sending them to every directely connected router, and those routers forwarding them to their direct neighbours.
+- **Area**: Grouping routers and IP networks in distinct areas. Link failures are localized, and flooding is done only in that area. Doesn't invoke convergency in other areas. Larger scalability.
+- **Fast convergency**: Flooding is done initially upon turing on routers and upon every topology change. More memory, CPU time required, and bandwidth required upon convergency. The load is minimal during stable state - only *keepalive* messages are sent.
+- **Two kinds of Link-State**:
+    - **OSPF**: *Open Shortest Path First*, Administrative distance - 110, Classless.
+    - **IS-IS**: *Intermediate System-Intermediate System*, ISO standard, Administrative distance - 115.
+
+## OSPF
+- **OSPF messages**: Hello, DD, LSR, LSU, LSAck - encapsulated in IP packets (do not belong to transport layer).
+- **Hello process**: Protocol for establishing neighbor routers. 
+    - **Hello message**: Requirment for neighbors to be established is that they have same parameters:
+        - **Network IP address**: They must be connected to the same IP network.
+        - **Hello interval**: Period of announcing Hello messages (10sec on Ethernet connections).
+        - **Dead interval**: Time for terminating neighbor - when no Hello messages arrive (4x Hello interval).
+        - **Area ID**: They must belong to the same area.
+        - **Authentication**: Optional.
+        - **Other parameters**: "Stub area flag", ...
+    - **Loopback interface**: Logical interface (not physical, exists only in software). Contains arbitrary IP address and mask (mask can even be "/32"). Always active. Good for accessing router (ping, logging, ...).
+    - **Router ID (RID)**: Unique router identifier on OSPF protocol layer. It is equal to: Largest IP address of physicall interface if loopback isn't defined. Largest IP address of loopback interface, if it exists.
+    - **Process**:
+        1) **Down**: Initial state.
+        2) **Init**: After turning on the interface, ready for sending Hello messages.
+        3) **2-way**: Neighbors set up, with next conditions: RID is recognised in "seen" field that contains all discovered neighbor routers on that segment and is equal on both routers.
+- **ExStart process**: Exchange preparation.
+    - **Slave / Master**: Negotiating who is master and who is slave. Master - higher RID.
+    - **Sequence Number (Seq)**: Numeration of route information. Incremented when new information appears.
+    - **Process**:
+        1) Router A suggests that he is Master and sets up Seq.
+        2) Router B has higher RID, and becomes the Master and sets up Seq, and sends it to router A.
+        3) Router A accpets Seq and becomes Slave.
+- **Exchange process**: Descriptor exchange - LSA data from LSDB tabels. Goal is to determine what information is missing in routers LSDB.
+    - **Database Description (DD)**: Packets containing only data descriptions, not whole information.
+    - **Process**:
+        1) Master starts communication, by sending DD packets.
+        2) Seq is incremented - it identifies sent packets for tracking if some packet got lost, if lost then retransmission.
+- **Loading process**: Exchanging missing information.
+    - **Link State Request (LSR)**: Master states descriptor list of missing informations.
+    - **Link State Update (LSU)**: Slave answers with one or more packets that contain all missing information.
+    - **Link State Acknowledgement (LSAck)**: Information received confirmation.
+- **Full**: Finished state - LSDB tables syncronized.
+- **Multiple routers in one Ethernet network**:
+    - **Designated Router (DR)**: To avoid too much neighbor connections (O(n^2)), we define one central router upon establishing neighbors.
+    - **Backup Designated Router (BDR)**: Reserve central router.
+    - **DROthers**: Rest of the routers.
+    - **SLA exchange**: Exchange of SLA packets is done through DR. DROhers send LSA packet on multicast address (AllDRouters - 224.0.0.6). DR and BDR "listen" the traffic for AllDRouters multicast address and receive LSA. Only DR (not BDR) forwards LSA packet on multicast address (AllSPFRouters - 224.0.0.5). All OSPF routers "listen" the traffic for AllSPFRouters multicast address and receive LSA.
+    - **Priority**: Priority upon choosing DR and BDR. Every router interface has its assigned priority (value from 0 to 255). Value 0 means that this router doesn't participate in election of DR and BDR. Contained in Hello messages. Higher value is higher priority.
+    - **Election**: Router with highest priority becomes DR, with second highest becomes BDR, if priorities are same, the one with higher RID is choosen.
+    - **Removing/Adding routers**: When new router is added, DR and BDR aren't changed even if the new router has higher priority. When DR is removed, BDR becomes DR, and BDR is some other router with highest priority (can happen that new BDR has higher priority than DR).
+- **OSPF metric**:
+    - **Cost**: Equals to cost = 10^8 / bandwidth. Smaller price - higher priority.
+    - **Serial interface cost**: Serial interfaces have predefined cost no matter the bandwidth speed (cost = 10^8 / 1544kbps, (T1 line)).
+    - **Custom cost**: You can define your own custom cost for every interface.
+- **OSPF Areas**:
+    - **Central area**: Area 0 (Backbone Area, Transit Area).
+    - **Peripheral area**: Area n (n - integer value). All peripheral areas must be exclusively connected to the central area.
+- **OSPF Routers**:
+    - **Area Border Router (ABR)**: Border router between two areas (central and peripheral).
+    - **Autonomous System Boundry Router (ASBR)**: Border router between OSPF domain and some other routing domain.
+    - **Internal Router**: Internal router that belongs only to one area.
+    - **Backbone Router**: Internal router that belongs to the central area.
+- **Types of LSA**:
+    - **Router LSA**: Type 1 (in routing tables labeled with "O" - intra-area). Generated by all routers, give informations about all interfaces. Propagated only inside one area, aren't transmitted between areas.
+    - **Network LSA**: Type 2 (in routing tables labeled with "O" - intra-area). Generated by DR router. Ethernet network is announcing itself to other routers in the area. Propagated only inside one area, aren't transmitted between areas.
+    - **Summary LSA**: Type 3 and 4 (in routing tables labeled with "O IA" - inter-area). Generated by ABR using Router LSA and Network LSA. It is transfered in all areas. Reduces flooding. Changes in one area don't lead to recalculating SPF in other areas. Goal is to aggregate all IP networks from one area - offloads other areas.
+    - **Exteranal LSA**: Type 5 (in routing tables labeled with "O E1" and "O E2"). Generated by ASBR. Contains information about networks from outside of OSPF domain.
