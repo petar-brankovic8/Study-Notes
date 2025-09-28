@@ -505,7 +505,7 @@ Class: **Computer Networks 1**
             - **Host Unreachable**: When there is no response for ARP Request in the directly connected network.
             - **Protocol Unreachable**: Packet got to the L3 of the destination device, but L4 protocol is unknown to the device.
             - **Port Unreachable**: Packet got to the L4 of the destination device, but there is no application ("open port") that is given in the L4 header.
-    - **ICMP - Redirect**: ICMP Error message.
+    - **ICMP - Redirect**: ICMP message.
         - **Error message**: Default gateway informs the sender device that for the destination there is a better specific route (more routers connected to same LAN).
         - **Steps**:
             1) Device sends packet for other network to default gateway.
